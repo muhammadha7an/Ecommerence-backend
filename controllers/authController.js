@@ -157,6 +157,7 @@ const updateProfile = async (req, res) => {
   try {     
     const name = String(req.body.name || "").trim();
     const email = normalizeEmail(req.body.email);
+    const address = req.body.address;
 
     const user = await User.findById(req.userId);
 
@@ -185,6 +186,15 @@ const updateProfile = async (req, res) => {
       }
 
       user.email = email;
+    }
+
+    if (address && typeof address === "object") {
+      user.address = {
+        street: String(address.street || "").trim(),
+        city: String(address.city || "").trim(),
+        postalCode: String(address.postalCode || "").trim(),
+        phone: String(address.phone || "").trim(),
+      };
     }
 
     await user.save();

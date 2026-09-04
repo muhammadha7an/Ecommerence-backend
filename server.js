@@ -51,10 +51,13 @@ app.get("/", (req, res) => {
 // Auth routes
 const authRoutes = require("./routes/authRoutes");
 const stripeRoutes = require("./routes/stripeRoutes");
+const orderRoutes = require("./routes/orderRoutes");
+const authMiddleware = require("./middleware/authMiddleware");
 
 app.use("/api/auth", databaseMiddleware);
 app.use("/api/auth", authRoutes);
 app.use("/api", stripeRoutes);
+app.use("/api/orders", authMiddleware, orderRoutes);
 
 // Local development
 const PORT = process.env.PORT || 5000;
