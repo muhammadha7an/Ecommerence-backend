@@ -4,14 +4,31 @@ const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 
+const normalizeEmail = (email) => String(email || "").trim().toLowerCase();
+
+const publicUser = (user) => ({
+  id: user._id,
+  name: user.name,
+  email: user.email,
+});
+
 const signup = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const name = String(req.body.name || "").trim();
+    const email = normalizeEmail(req.body.email);
+    const password = String(req.body.password || "");
 
     if (!name || !email || !password) {
       return res.status(400).json({
         success: false,
         message: "All fields are required",
+      });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 6 characters",
       });
     }
 
@@ -35,23 +52,20 @@ const signup = async (req, res) => {
     res.status(201).json({
       success: true,
       message: "Account created successfully",
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-      },
+      user: publicUser(user),
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.code === 11000 ? 409 : 500).json({
       success: false,
-      message: error.message,
+      message: error.code === 11000 ? "Email already registered" : "Unable to create account",
     });
   }
 };
 
 const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const email = normalizeEmail(req.body.email);
+    const password = String(req.body.password || "");
 
     if (!email || !password) {
       return res.status(400).json({
@@ -81,6 +95,13 @@ const login = async (req, res) => {
       });
     }
 
+    if (!process.env.JWT_SECRET) {
+      return res.status(500).json({
+        success: false,
+        message: "JWT_SECRET is not configured",
+      });
+    }
+
     const token = jwt.sign(
       {
         userId: user._id,
@@ -95,11 +116,7 @@ const login = async (req, res) => {
       success: true,
       message: "Login successful",
       token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-      },
+      user: publicUser(user),
     });
   } catch (error) {
     res.status(500).json({
@@ -138,7 +155,8 @@ const getMe = async (req, res) => {
 
 const updateProfile = async (req, res) => {
   try {     
-    const { name, email } = req.body;
+    const name = String(req.body.name || "").trim();
+    const email = normalizeEmail(req.body.email);
 
     const user = await User.findById(req.userId);
 
@@ -252,7 +270,7 @@ const logout = async (req, res) => {
 
 const forgotPassword = async (req, res) => {
   try {
-    const { email } = req.body;
+    const email = normalizeEmail(req.body.email);
 
     if (!email) {
       return res.status(400).json({
@@ -270,6 +288,13 @@ const forgotPassword = async (req, res) => {
       });
     }
 
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+      return res.status(503).json({
+        success: false,
+        message: "Password reset email is not configured",
+      });
+    }
+
     const resetToken = crypto.randomBytes(32).toString("hex");
 
     user.resetPasswordToken = resetToken;
@@ -283,7 +308,9 @@ const forgotPassword = async (req, res) => {
       `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
 
     const transporter = nodemailer.createTransport({
-      service: "gmail",
+      host: process.env.SMTP_HOST || "smtp.gmail.com",
+      port: Number(process.env.SMTP_PORT || 465),
+      secure: Number(process.env.SMTP_PORT || 465) === 465,
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASSWORD,
@@ -323,7 +350,7 @@ const forgotPassword = async (req, res) => {
 const resetPassword = async (req, res) => {
   try {
     const { token } = req.params;
-    const { password } = req.body;
+    const password = String(req.body.password || "");
 
     if (!password) {
       return res.status(400).json({
