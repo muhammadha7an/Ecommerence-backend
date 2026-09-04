@@ -3,6 +3,7 @@ const express = require("express");
 const {
   signup,
   login,
+  adminLogin,
   getMe,
   updateProfile,
   changePassword,
@@ -34,5 +35,7 @@ router.put(
 );
 
 router.get("/me", authMiddleware, getMe);
+
+router.post("/admin-login", adminLogin);
 
 module.exports = router;

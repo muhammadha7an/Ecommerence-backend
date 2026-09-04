@@ -104,13 +104,9 @@ const login = async (req, res) => {
     }
 
     const token = jwt.sign(
-      {
-        userId: user._id,
-      },
+      { userId: user._id },
       process.env.JWT_SECRET,
-      {
-        expiresIn: "7d",
-      }
+      { expiresIn: "7d" }
     );
 
     res.json({
@@ -405,9 +401,41 @@ const resetPassword = async (req, res) => {
 };
 
 
+const adminLogin = async (req, res) => {
+  try {
+    const username = String(req.body.username || "").trim();
+    const password = String(req.body.password || "");
+    const configuredUsername = process.env.ADMIN_USERNAME || "admin";
+    const configuredPassword = process.env.ADMIN_PASSWORD || "admin";
+    const configuredEmail = process.env.ADMIN_EMAIL || "admin@local.invalid";
+
+    if (username !== configuredUsername || password !== configuredPassword) {
+      return res.status(401).json({ success: false, message: "Invalid administrator credentials" });
+    }
+
+    let user = await User.findOne({ email: configuredEmail });
+    if (!user) {
+      user = await User.create({ name: configuredUsername, email: configuredEmail, password: await bcrypt.hash(configuredPassword, 10), role: "admin" });
+    } else if (user.role !== "admin") {
+      user.role = "admin";
+      await user.save();
+    }
+
+    if (!process.env.JWT_SECRET) {
+      return res.status(500).json({ success: false, message: "JWT_SECRET is not configured" });
+    }
+
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
+    return res.json({ success: true, message: "Administrator login successful", token, user: publicUser(user) });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: "Unable to sign in as administrator" });
+  }
+};
+
 module.exports = {
   signup,
   login,
+  adminLogin,
   getMe,
   updateProfile,
   changePassword,
