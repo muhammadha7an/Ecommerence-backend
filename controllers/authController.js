@@ -10,6 +10,7 @@ const publicUser = (user) => ({
   id: user._id,
   name: user.name,
   email: user.email,
+  role: user.role || "user",
 });
 
 const signup = async (req, res) => {
@@ -202,11 +203,7 @@ const updateProfile = async (req, res) => {
     res.json({
       success: true,
       message: "Profile updated successfully",
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-      },
+      user: publicUser(user),
     });
   } catch (error) {
     res.status(500).json({

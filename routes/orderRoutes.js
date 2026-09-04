@@ -12,4 +12,21 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.get("/:orderId", async (req, res) => {
+  try {
+    const order = await Order.findOne({
+      _id: req.params.orderId,
+      userId: req.userId,
+    });
+
+    if (!order) {
+      return res.status(404).json({ success: false, message: "Order not found" });
+    }
+
+    return res.json({ success: true, order });
+  } catch (error) {
+    return res.status(404).json({ success: false, message: "Order not found" });
+  }
+});
+
 module.exports = router;
