@@ -1,8 +1,10 @@
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 const dotenv = require("dotenv");
 const connectDB = require("./config/db");
 const databaseMiddleware = require("./middleware/databaseMiddleware");
+const seedCatalog = require("./config/seedCatalog");
 
 dotenv.config();
 
@@ -24,6 +26,9 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Serve static uploaded product images
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
 app.use((error, req, res, next) => {
   if (error instanceof SyntaxError && error.status === 400 && "body" in error) {
     return res.status(400).json({
@@ -35,10 +40,12 @@ app.use((error, req, res, next) => {
   return next(error);
 });
 
-// Connect MongoDB without turning a transient database outage into a process crash.
-connectDB().catch((error) => {
-  console.error("MongoDB startup error:", error.message);
-});
+// Connect MongoDB and trigger catalog seeder
+connectDB()
+  .then(() => seedCatalog())
+  .catch((error) => {
+    console.error("MongoDB startup error:", error.message);
+  });
 
 // Test route
 app.get("/", (req, res) => {
@@ -48,10 +55,13 @@ app.get("/", (req, res) => {
   });
 });
 
-// Auth routes
+// Routes
 const authRoutes = require("./routes/authRoutes");
 const stripeRoutes = require("./routes/stripeRoutes");
 const orderRoutes = require("./routes/orderRoutes");
+const productRoutes = require("./routes/productRoutes");
+const categoryRoutes = require("./routes/categoryRoutes");
+const uploadRoutes = require("./routes/uploadRoutes");
 const authMiddleware = require("./middleware/authMiddleware");
 const adminMiddleware = require("./middleware/adminMiddleware");
 const adminRoutes = require("./routes/adminRoutes");
@@ -60,6 +70,9 @@ app.use("/api/auth", databaseMiddleware);
 app.use("/api/auth", authRoutes);
 app.use("/api", stripeRoutes);
 app.use("/api/orders", authMiddleware, orderRoutes);
+app.use("/api/products", databaseMiddleware, productRoutes);
+app.use("/api/categories", databaseMiddleware, categoryRoutes);
+app.use("/api/upload", databaseMiddleware, uploadRoutes);
 app.use("/api/admin", authMiddleware, adminMiddleware, adminRoutes);
 
 // Local development

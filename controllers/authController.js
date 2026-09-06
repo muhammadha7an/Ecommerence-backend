@@ -271,6 +271,11 @@ const logout = async (req, res) => {
   });
 };
 
+
+
+
+
+
 const forgotPassword = async (req, res) => {
   try {
     const email = normalizeEmail(req.body.email);
@@ -282,15 +287,18 @@ const forgotPassword = async (req, res) => {
       });
     }
 
+    // Check if email exists in MongoDB
     const user = await User.findOne({ email });
 
+    // Email does not exist
     if (!user) {
-      return res.json({
-        success: true,
-        message: "If this email exists, a reset link has been sent",
+      return res.status(404).json({
+        success: false,
+        message: "Email does not exist. Please enter a registered email address.",
       });
     }
 
+    // Check email configuration
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
       return res.status(503).json({
         success: false,
@@ -298,6 +306,7 @@ const forgotPassword = async (req, res) => {
       });
     }
 
+    // Generate reset token
     const resetToken = crypto.randomBytes(32).toString("hex");
 
     user.resetPasswordToken = resetToken;
@@ -307,9 +316,11 @@ const forgotPassword = async (req, res) => {
 
     await user.save();
 
+    // Reset password URL
     const resetUrl =
       `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
 
+    // Create transporter
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || "smtp.gmail.com",
       port: Number(process.env.SMTP_PORT || 465),
@@ -320,6 +331,7 @@ const forgotPassword = async (req, res) => {
       },
     });
 
+    // Send reset email
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: user.email,
@@ -329,7 +341,17 @@ const forgotPassword = async (req, res) => {
 
         <p>Click the button below to reset your password:</p>
 
-        <a href="${resetUrl}">
+        <a
+          href="${resetUrl}"
+          style="
+            display:inline-block;
+            padding:10px 20px;
+            background:#007bff;
+            color:white;
+            text-decoration:none;
+            border-radius:5px;
+          "
+        >
           Reset Password
         </a>
 
@@ -337,17 +359,23 @@ const forgotPassword = async (req, res) => {
       `,
     });
 
-    res.json({
+    return res.status(200).json({
       success: true,
-      message: "Password reset link has been sent",
+      message: "Password reset link has been sent to your email",
     });
+
   } catch (error) {
-    res.status(500).json({
+    console.error("Forgot password error:", error);
+
+    return res.status(500).json({
       success: false,
-      message: error.message,
+      message: "Something went wrong. Please try again.",
     });
   }
 };
+
+
+ 
 
 
 const resetPassword = async (req, res) => {
