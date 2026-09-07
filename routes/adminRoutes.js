@@ -133,6 +133,197 @@ router.get("/analytics", async (req, res) => {
   }
 });
 
+// GET /api/admin/daily-earnings?days=7
+router.get("/daily-earnings", async (req, res) => {
+  try {
+    const days = Math.min(
+      Math.max(parseInt(req.query.days, 10) || 7, 1),
+      30
+    );
+
+    const startDate = new Date();
+
+    startDate.setHours(0, 0, 0, 0);
+    startDate.setDate(startDate.getDate() - (days - 1));
+
+    const dailyEarnings = await Order.aggregate([
+      {
+        $match: {
+          createdAt: {
+            $gte: startDate,
+          },
+          paymentStatus: "paid",
+        },
+      },
+
+      {
+        $group: {
+          _id: {
+            $dateToString: {
+              format: "%Y-%m-%d",
+              date: "$createdAt",
+              timezone: "Asia/Karachi",
+            },
+          },
+
+          totalRevenue: {
+            $sum: "$totalAmount",
+          },
+
+          orderCount: {
+            $sum: 1,
+          },
+        },
+      },
+
+      {
+        $sort: {
+          _id: 1,
+        },
+      },
+    ]);
+
+    const earningsMap = {};
+
+    dailyEarnings.forEach((item) => {
+      earningsMap[item._id] = {
+        total: (item.totalRevenue || 0) / 100,
+        orderCount: item.orderCount || 0,
+      };
+    });
+
+    const result = [];
+
+    for (let i = days - 1; i >= 0; i--) {
+      const date = new Date();
+
+      date.setHours(0, 0, 0, 0);
+      date.setDate(date.getDate() - i);
+
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+
+      const dateKey = `${year}-${month}-${day}`;
+
+      result.push({
+        date: dateKey,
+        total: earningsMap[dateKey]?.total || 0,
+        orderCount: earningsMap[dateKey]?.orderCount || 0,
+      });
+    }
+
+    return res.json({
+      success: true,
+      days,
+      earnings: result,
+    });
+  } catch (error) {
+    console.error("Daily earnings error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to load daily earnings",
+    });
+  }
+});
+
+// GET /api/admin/daily-earnings?days=7
+router.get("/daily-earnings", async (req, res) => {
+  try {
+    const days = Math.min(
+      Math.max(parseInt(req.query.days, 10) || 7, 1),
+      30
+    );
+
+    const startDate = new Date();
+
+    startDate.setHours(0, 0, 0, 0);
+    startDate.setDate(startDate.getDate() - (days - 1));
+
+    const dailyEarnings = await Order.aggregate([
+      {
+        $match: {
+          createdAt: {
+            $gte: startDate,
+          },
+          paymentStatus: "paid",
+        },
+      },
+
+      {
+        $group: {
+          _id: {
+            $dateToString: {
+              format: "%Y-%m-%d",
+              date: "$createdAt",
+              timezone: "Asia/Karachi",
+            },
+          },
+
+          totalRevenue: {
+            $sum: "$totalAmount",
+          },
+
+          orderCount: {
+            $sum: 1,
+          },
+        },
+      },
+
+      {
+        $sort: {
+          _id: 1,
+        },
+      },
+    ]);
+
+    const earningsMap = {};
+
+    dailyEarnings.forEach((item) => {
+      earningsMap[item._id] = {
+        total: (item.totalRevenue || 0) / 100,
+        orderCount: item.orderCount || 0,
+      };
+    });
+
+    const result = [];
+
+    for (let i = days - 1; i >= 0; i--) {
+      const date = new Date();
+
+      date.setHours(0, 0, 0, 0);
+      date.setDate(date.getDate() - i);
+
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+
+      const dateKey = `${year}-${month}-${day}`;
+
+      result.push({
+        date: dateKey,
+        total: earningsMap[dateKey]?.total || 0,
+        orderCount: earningsMap[dateKey]?.orderCount || 0,
+      });
+    }
+
+    return res.json({
+      success: true,
+      days,
+      earnings: result,
+    });
+  } catch (error) {
+    console.error("Daily earnings error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to load daily earnings",
+    });
+  }
+});
+
+
 // GET /api/admin/users
 router.get("/users", async (req, res) => {
   try {
