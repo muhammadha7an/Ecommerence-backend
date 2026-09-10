@@ -65,6 +65,7 @@ const uploadRoutes = require("./routes/uploadRoutes");
 const authMiddleware = require("./middleware/authMiddleware");
 const adminMiddleware = require("./middleware/adminMiddleware");
 const adminRoutes = require("./routes/adminRoutes");
+const subscriberRoutes = require("./routes/subscriberRoutes");
 
 app.use("/api/auth", databaseMiddleware);
 app.use("/api/auth", authRoutes);
@@ -73,6 +74,7 @@ app.use("/api/orders", authMiddleware, orderRoutes);
 app.use("/api/products", databaseMiddleware, productRoutes);
 app.use("/api/categories", databaseMiddleware, categoryRoutes);
 app.use("/api/upload", databaseMiddleware, uploadRoutes);
+app.use("/api/subscribers", databaseMiddleware, subscriberRoutes);
 app.use("/api/admin", authMiddleware, adminMiddleware, adminRoutes);
 
 // Local development

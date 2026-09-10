@@ -4,6 +4,7 @@ const Order = require("../models/Order");
 const User = require("../models/User");
 const Product = require("../models/Product");
 const Category = require("../models/Category");
+const Subscriber = require("../models/Subscriber");
 
 const router = express.Router();
 
@@ -30,6 +31,7 @@ router.get("/overview", async (req, res) => {
       totalProducts,
       totalCategories,
       lowStockCount,
+      totalSubscribers,
     ] = await Promise.all([
       User.countDocuments(),
       Order.countDocuments(),
@@ -42,6 +44,7 @@ router.get("/overview", async (req, res) => {
       Product.countDocuments(),
       Category.countDocuments(),
       Product.countDocuments({ stock: { $lte: 5 } }),
+      Subscriber.countDocuments({ status: "active" }),
     ]);
 
     return res.json({
@@ -55,11 +58,31 @@ router.get("/overview", async (req, res) => {
         totalProducts,
         totalCategories,
         lowStockCount,
+        totalSubscribers,
       },
     });
   } catch (error) {
     console.error("Admin overview error:", error);
     return res.status(500).json({ success: false, message: "Unable to load admin overview" });
+  }
+});
+
+// GET /api/admin/subscribers - newsletter subscribers, newest first (admin only)
+router.get("/subscribers", async (req, res) => {
+  try {
+    const subscribers = await Subscriber.find()
+      .select("email status source createdAt")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return res.json({
+      success: true,
+      total: subscribers.length,
+      subscribers,
+    });
+  } catch (error) {
+    console.error("Admin subscribers error:", error);
+    return res.status(500).json({ success: false, message: "Unable to load newsletter subscribers" });
   }
 });
 
