@@ -19,12 +19,20 @@ const authMiddleware = async (req, res, next) => {
       process.env.JWT_SECRET
     );
 
-    const user = await User.findById(decoded.userId).select("_id role");
+    const user = await User.findById(decoded.userId).select("_id role passwordChangedAt");
 
     if (!user) {
       return res.status(401).json({
         success: false,
         message: "User account no longer exists",
+      });
+    }
+
+    // Tokens created before the last admin password change are no longer valid.
+    if (user.passwordChangedAt && decoded.iat && decoded.iat * 1000 < user.passwordChangedAt.getTime() - 1000) {
+      return res.status(401).json({
+        success: false,
+        message: "Your session has expired. Please sign in again.",
       });
     }
 
