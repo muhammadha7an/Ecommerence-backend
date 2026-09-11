@@ -18,7 +18,6 @@ const {
   updateContactMessage,
   deleteContactMessage,
 } = require("../controllers/adminContactController");
->>>>>>> theirs
 
 const router = express.Router();
 
