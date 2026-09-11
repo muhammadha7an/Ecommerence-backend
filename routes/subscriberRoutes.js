@@ -3,7 +3,6 @@ const express = require("express");
 const nodemailer = require("nodemailer");
 const Subscriber = require("../models/Subscriber");
  
-const Subscriber = require("../models/Subscriber");
 const { sendTemplate } = require("../services/emailService");
  
 
@@ -117,7 +116,7 @@ router.post("/", async (req, res) => {
     }
  
     const mail = await sendTemplate("newsletter", "customer", { email: subscriber.email }, { to: subscriber.email });
-    const emailSent = Boolean(mail.sent);
+    emailSent = emailSent || Boolean(mail.sent);
  
 
     return res.status(201).json({
