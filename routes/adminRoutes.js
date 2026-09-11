@@ -5,8 +5,7 @@ const User = require("../models/User");
 const Product = require("../models/Product");
 const Category = require("../models/Category");
 const Subscriber = require("../models/Subscriber");
-<<<<<<< ours
-=======
+ 
 const ContactSubmission = require("../models/ContactSubmission");
 const { sendTemplate } = require("../services/emailService");
 const {
@@ -47,11 +46,10 @@ router.get("/overview", async (req, res) => {
       totalCategories,
       lowStockCount,
       totalSubscribers,
-<<<<<<< ours
-=======
+ 
       unreadContactMessages,
       outOfStockCount,
->>>>>>> theirs
+ 
     ] = await Promise.all([
       User.countDocuments(),
       Order.countDocuments(),
@@ -65,11 +63,10 @@ router.get("/overview", async (req, res) => {
       Category.countDocuments(),
       Product.countDocuments({ stock: { $lte: 5 } }),
       Subscriber.countDocuments({ status: "active" }),
-<<<<<<< ours
-=======
+ 
       ContactSubmission.countDocuments({ status: "new" }),
       Product.countDocuments({ $or: [{ stock: { $lte: 0 } }, { inStock: false }] }),
->>>>>>> theirs
+ 
     ]);
 
     return res.json({
@@ -84,11 +81,10 @@ router.get("/overview", async (req, res) => {
         totalCategories,
         lowStockCount,
         totalSubscribers,
-<<<<<<< ours
-=======
+ 
         unreadContactMessages,
         outOfStockCount,
->>>>>>> theirs
+ 
       },
     });
   } catch (error) {
@@ -116,8 +112,7 @@ router.get("/subscribers", async (req, res) => {
   }
 });
 
-<<<<<<< ours
-=======
+ 
 // Settings, admin profile and contact messages
 router.get("/settings", getAdminSettings);
 router.put("/settings", updateAdminSettings);
@@ -125,8 +120,7 @@ router.put("/profile", updateAdminProfile);
 router.get("/contact-messages", listContactMessages);
 router.patch("/contact-messages/:id", updateContactMessage);
 router.delete("/contact-messages/:id", deleteContactMessage);
-
->>>>>>> theirs
+ 
 // GET /api/admin/analytics - real database aggregation for dynamic charts
 router.get("/analytics", async (req, res) => {
   try {

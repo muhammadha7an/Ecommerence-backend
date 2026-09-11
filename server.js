@@ -76,11 +76,10 @@ const authMiddleware = require("./middleware/authMiddleware");
 const adminMiddleware = require("./middleware/adminMiddleware");
 const adminRoutes = require("./routes/adminRoutes");
 const subscriberRoutes = require("./routes/subscriberRoutes");
-<<<<<<< ours
-=======
+ 
 const contactRoutes = require("./routes/contactRoutes");
 const settingsRoutes = require("./routes/settingsRoutes");
->>>>>>> theirs
+ 
 
 app.use("/api/auth", databaseMiddleware);
 app.use("/api/auth", authRoutes);
@@ -90,14 +89,13 @@ app.use("/api/products", databaseMiddleware, productRoutes);
 app.use("/api/categories", databaseMiddleware, categoryRoutes);
 app.use("/api/upload", databaseMiddleware, uploadRoutes);
 app.use("/api/subscribers", databaseMiddleware, subscriberRoutes);
-<<<<<<< ours
+ 
 app.use("/api/admin", authMiddleware, adminMiddleware, adminRoutes);
-=======
+ 
 app.use("/api/contact", databaseMiddleware, contactRoutes);
 app.use("/api/settings", databaseMiddleware, settingsRoutes);
 app.use("/api/admin", databaseMiddleware, authMiddleware, adminMiddleware, adminRoutes);
->>>>>>> theirs
-
+ 
 // Local development
 const PORT = process.env.PORT || 5000;
 

@@ -1,17 +1,17 @@
 const express = require("express");
-<<<<<<< ours
+ 
 const nodemailer = require("nodemailer");
 const Subscriber = require("../models/Subscriber");
-=======
+ 
 const Subscriber = require("../models/Subscriber");
 const { sendTemplate } = require("../services/emailService");
->>>>>>> theirs
+ 
 
 const router = express.Router();
 const { EMAIL_PATTERN } = Subscriber;
 const ALLOWED_SOURCES = ["home", "footer", "website"];
 
-<<<<<<< ours
+ 
 const isEmailConfigured = () =>
   Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASSWORD);
 
@@ -73,8 +73,7 @@ const sendConfirmationEmail = async (email) => {
   return true;
 };
 
-=======
->>>>>>> theirs
+ 
 // POST /api/subscribers — public newsletter sign-up (Home + Footer forms)
 router.post("/", async (req, res) => {
   try {
@@ -109,17 +108,17 @@ router.post("/", async (req, res) => {
     }
 
     // Email failures must never undo a successful subscription.
-<<<<<<< ours
+ 
     let emailSent = false;
     try {
       emailSent = await sendConfirmationEmail(subscriber.email);
     } catch (mailError) {
       console.error("Newsletter confirmation email failed:", mailError.message);
     }
-=======
+ 
     const mail = await sendTemplate("newsletter", "customer", { email: subscriber.email }, { to: subscriber.email });
     const emailSent = Boolean(mail.sent);
->>>>>>> theirs
+ 
 
     return res.status(201).json({
       success: true,
